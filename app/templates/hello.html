@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Hello - Flasky{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1>Hello, World!</h1>
+    <p class="lead">欢迎来到 Flasky。这是 main 蓝图新增的 <code>/hello</code> 路由演示页面。</p>
+</div>
+<div class="row">
+    <div class="col-md-8">
+        <div class="well">
+            <h4>请求流说明</h4>
+            <ol>
+                <li>浏览器请求 <code>GET /hello</code></li>
+                <li>Flask URL 路由匹配 <code>main.hello</code> 视图函数</li>
+                <li>视图函数调用 <code>render_template('hello.html')</code></li>
+                <li>Jinja2 渲染模板并返回 HTML 响应</li>
+            </ol>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="panel panel-default">
+            <div class="panel-heading">快速导航</div>
+            <div class="panel-body">
+                <a href="{{ url_for('main.index') }}" class="btn btn-primary btn-block">返回首页</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

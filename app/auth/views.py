@@ -72,7 +72,7 @@ def register():
 def confirm(token):
     if current_user.confirmed:
         return redirect(url_for('main.index'))
-    if current_user.confirm(token):
+    if current_user.confirm(token, max_age=3600):
         db.session.commit()
         flash('You have confirmed your account. Thanks!')
     else:

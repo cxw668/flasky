@@ -1,7 +1,7 @@
-from datetime import datetime
+from datetime import datetime,timezone
 import hashlib
 from werkzeug.security import generate_password_hash, check_password_hash
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from itsdangerous import URLSafeTimedSerializer as Serializer
 from markdown import markdown
 import bleach
 from flask import current_app, request, url_for
@@ -86,13 +86,14 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(64), unique=True, index=True)
     username = db.Column(db.String(64), unique=True, index=True)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
-    password_hash = db.Column(db.String(128))
+    password_hash = db.Column(db.String(256))
     confirmed = db.Column(db.Boolean, default=False)
     name = db.Column(db.String(64))
     location = db.Column(db.String(64))
     about_me = db.Column(db.Text())
-    member_since = db.Column(db.DateTime(), default=datetime.utcnow)
-    last_seen = db.Column(db.DateTime(), default=datetime.utcnow)
+    # datetime.utcnow => lamba: datetime.now(timezone.utc)
+    member_since = db.Column(db.DateTime(), default=lambda: datetime.now(timezone.utc))
+    last_seen = db.Column(db.DateTime(), default=lambda: datetime.now(timezone.utc))
     avatar_hash = db.Column(db.String(32))
     posts = db.relationship('Post', backref='author', lazy='dynamic')
     followed = db.relationship('Follow',
@@ -138,13 +139,13 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password_hash, password)
 
     def generate_confirmation_token(self, expiration=3600):
-        s = Serializer(current_app.config['SECRET_KEY'], expiration)
-        return s.dumps({'confirm': self.id}).decode('utf-8')
+        s = Serializer(current_app.config['SECRET_KEY'])
+        return s.dumps({'confirm': self.id})
 
-    def confirm(self, token):
+    def confirm(self, token, max_age=3600):
         s = Serializer(current_app.config['SECRET_KEY'])
         try:
-            data = s.loads(token.encode('utf-8'))
+            data = s.loads(token.encode('utf-8'), max_age=max_age)
         except:
             return False
         if data.get('confirm') != self.id:

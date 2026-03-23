@@ -1,3 +1,5 @@
+import os
+import pymysql
 from flask import Flask
 from flask_bootstrap import Bootstrap
 from flask_mail import Mail
@@ -7,6 +9,7 @@ from flask_login import LoginManager
 from flask_pagedown import PageDown
 from config import config
 
+pymysql.install_as_MySQLdb()
 bootstrap = Bootstrap()
 mail = Mail()
 moment = Moment()
@@ -19,8 +22,12 @@ login_manager.login_view = 'auth.login'
 
 def create_app(config_name):
     app = Flask(__name__)
+
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
+
+    print(f"✅ 当前配置类: {config_name}")
+    print(f"✅ 邮箱服务器: {app.config.get('MAIL_SERVER')}")
 
     bootstrap.init_app(app)
     mail.init_app(app)
@@ -33,6 +40,7 @@ def create_app(config_name):
         from flask_sslify import SSLify
         sslify = SSLify(app)
 
+    # 延迟导入：避免循环导入
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint)
 
